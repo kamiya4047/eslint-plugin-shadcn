@@ -35,8 +35,6 @@
   ],
   "scripts": {
     "build": "rollup -c rollup.config.js",
-    "test": "bun test test/",
-    "test:watch": "bun test test/ --watch",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "dev": "bun --watch src/index.ts",

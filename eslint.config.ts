@@ -1,13 +1,22 @@
-import { defineConfig } from 'eslint/config';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
 import prettyImport from '@kamiya4047/eslint-plugin-pretty-import';
 import stylistic from '@stylistic/eslint-plugin';
 import typescript from 'typescript-eslint';
 
 export default defineConfig(
+  globalIgnores([
+    'dist',
+    'node_modules',
+  ],
+  ),
   {
     name: 'files',
-    files: ['src/**/*.ts', 'eslint.config.ts'],
+    files: [
+      'src/**/*.ts',
+      'tests/**/*.ts',
+      'eslint.config.ts',
+    ],
   },
   {
     name: 'parser',

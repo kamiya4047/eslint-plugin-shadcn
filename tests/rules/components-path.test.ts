@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { describe, test } from 'bun:test';
 
 import { RuleTester } from 'eslint';
