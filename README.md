@@ -1,5 +1,9 @@
 # eslint-plugin-shadcn
 
+![Build](https://github.com/kamiya4047/eslint-plugin-shadcn/actions/workflows/build.yml/badge.svg)
+![GitHub License](https://img.shields.io/github/license/kamiya4047/eslint-plugin-shadcn)
+![NPM Version](https://img.shields.io/npm/v/eslint-plugin-shadcn)
+
 ESLint plugin for shadcn/ui components.
 
 ## Installation
