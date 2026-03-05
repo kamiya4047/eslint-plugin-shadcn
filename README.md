@@ -39,19 +39,18 @@ export default [
 ### Configurations
 
 **Radix/shadcn:**
+
 - `radix-recommended` - Essential rules as errors
 - `radix-recommended-warn` - Essential rules as warnings
 - `radix-all` - All Radix rules as errors
 - `radix-all-warn` - All Radix rules as warnings
 
 **Base UI:**
+
 - `base-recommended` - Essential rules as errors
 - `base-recommended-warn` - Essential rules as warnings
 - `base-all` - All Base UI rules as errors
 - `base-all-warn` - All Base UI rules as warnings
-
-**Legacy:**
-- `recommended` - Alias for `radix-recommended`
 
 ## Rules
 
