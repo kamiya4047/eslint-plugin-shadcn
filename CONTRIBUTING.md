@@ -11,7 +11,7 @@ cd eslint-plugin-shadcn
 bun install --frozen-lockfile --frozen-lockfile
 
 # Run tests
-bun test
+bun run test
 
 # Build the plugin
 bun run build
@@ -155,7 +155,7 @@ Write tests for:
 Run your tests frequently while developing:
 
 ```bash
-bun test src/rules/your-rule-name.test.ts
+bun mocha src/rules/your-rule-name.test.ts
 ```
 
 ### Step 3: Register the Rule
@@ -232,10 +232,7 @@ Update the README.md to include your rule in the appropriate table.
 
 ```bash
 # Run all tests
-bun test
-
-# Run tests in watch mode during development
-bun test --watch
+bun run test
 
 # Lint your code
 bun run lint

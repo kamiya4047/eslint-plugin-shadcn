@@ -1,6 +1,5 @@
-import { describe, it } from 'bun:test';
-
 import { RuleTester } from 'eslint';
+import { describe } from 'mocha';
 
 import rule from '../../src/rules/data-disabled-field-consistency';
 
@@ -17,137 +16,124 @@ const ruleTester = new RuleTester({
 });
 
 describe('data-disabled-field-consistency', () => {
-  it('should allow correct data-disabled usage', () => {
-    ruleTester.run('data-disabled-field-consistency', rule, {
-      valid: [
-        // Correct - Field has data-disabled when Switch is disabled
-        {
-          code: `
+  ruleTester.run('should allow correct data-disabled usage', rule, {
+    valid: [
+      {
+        code: `
             <Field data-disabled>
               <Switch disabled />
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        // Correct - Switch not disabled, no data-disabled needed
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field>
               <Switch />
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        // Correct - Switch outside Field with disabled
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <div>
               <Switch disabled />
             </div>
           `,
-          filename: 'test.tsx',
-        },
-        // Correct - Field with data-disabled and other attributes
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field data-disabled className="field">
               <Switch disabled />
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        // SelectTrigger tests
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field data-disabled>
               <SelectTrigger disabled>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        // Test ignore option
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field>
               <SelectTrigger disabled>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-          options: [{ ignore: ['SelectTrigger'] }],
-        },
-      ],
-      invalid: [],
-    });
+        filename: 'test.tsx',
+        options: [{ ignore: ['SelectTrigger'] }],
+      },
+    ],
+    invalid: [],
   });
 
-  it('should enforce data-disabled on Field when components are disabled', () => {
-    ruleTester.run('data-disabled-field-consistency', rule, {
-      valid: [],
-      invalid: [
-        // Missing data-disabled on Field
-        {
-          code: `
+  ruleTester.run('should enforce data-disabled on Field when components are disabled', rule, {
+    valid: [],
+    invalid: [
+      {
+        code: `
             <Field>
               <Switch disabled />
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataDisabled' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataDisabled' }],
+        output: `
             <Field data-disabled>
               <Switch disabled />
             </Field>
           `,
-        },
-        // Missing data-disabled on Field with other attributes
-        {
-          code: `
+      },
+      {
+        code: `
             <Field className="field">
               <Switch disabled />
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataDisabled' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataDisabled' }],
+        output: `
             <Field data-disabled className="field">
               <Switch disabled />
             </Field>
           `,
-        },
-        // Nested Field structure
-        {
-          code: `
+      },
+      {
+        code: `
             <Field>
               <FieldLabel>Label</FieldLabel>
               <Switch disabled />
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataDisabled' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataDisabled' }],
+        output: `
             <Field data-disabled>
               <FieldLabel>Label</FieldLabel>
               <Switch disabled />
             </Field>
           `,
-        },
-        // SelectTrigger missing data-disabled
-        {
-          code: `
+      },
+      {
+        code: `
             <Field>
               <FieldLabel>Fruit</FieldLabel>
               <SelectTrigger disabled>
@@ -155,9 +141,9 @@ describe('data-disabled-field-consistency', () => {
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataDisabled' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataDisabled' }],
+        output: `
             <Field data-disabled>
               <FieldLabel>Fruit</FieldLabel>
               <SelectTrigger disabled>
@@ -165,26 +151,25 @@ describe('data-disabled-field-consistency', () => {
               </SelectTrigger>
             </Field>
           `,
-        },
-        {
-          code: `
+      },
+      {
+        code: `
             <Field className="mb-4">
               <SelectTrigger disabled>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataDisabled' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataDisabled' }],
+        output: `
             <Field data-disabled className="mb-4">
               <SelectTrigger disabled>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-        },
-      ],
-    });
+      },
+    ],
   });
 });

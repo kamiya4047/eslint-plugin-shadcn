@@ -1,6 +1,5 @@
-import { describe, it } from 'bun:test';
-
 import { RuleTester } from 'eslint';
+import { describe } from 'mocha';
 
 import rule from '../../src/rules/data-invalid-field-consistency';
 
@@ -17,146 +16,132 @@ const ruleTester = new RuleTester({
 });
 
 describe('data-invalid-field-consistency', () => {
-  it('should allow correct data-invalid usage', () => {
-    ruleTester.run('data-invalid-field-consistency', rule, {
-      valid: [
-        // Correct - Field has data-invalid when Switch has aria-invalid
-        {
-          code: `
+  ruleTester.run('should allow correct data-invalid usage', rule, {
+    valid: [
+      {
+        code: `
             <Field data-invalid>
               <Switch aria-invalid="true" />
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        // Correct - Switch without aria-invalid, no data-invalid needed
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field>
               <Switch />
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        // Correct - Switch outside Field with aria-invalid
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <div>
               <Switch aria-invalid="true" />
             </div>
           `,
-          filename: 'test.tsx',
-        },
-        // Correct - Field with data-invalid and other attributes
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field data-invalid className="field">
               <Switch aria-invalid="true" />
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        // aria-invalid can be boolean or string
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field data-invalid>
               <Switch aria-invalid />
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        // SelectTrigger tests
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field data-invalid>
               <SelectTrigger aria-invalid>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-        },
-        // Test ignore option
-        {
-          code: `
+        filename: 'test.tsx',
+      },
+      {
+        code: `
             <Field>
               <SelectTrigger aria-invalid>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-          options: [{ ignore: ['SelectTrigger'] }],
-        },
-      ],
-      invalid: [],
-    });
+        filename: 'test.tsx',
+        options: [{ ignore: ['SelectTrigger'] }],
+      },
+    ],
+    invalid: [],
   });
 
-  it('should enforce data-invalid on Field when components have aria-invalid', () => {
-    ruleTester.run('data-invalid-field-consistency', rule, {
-      valid: [],
-      invalid: [
-        // Missing data-invalid on Field
-        {
-          code: `
+  ruleTester.run('should enforce data-invalid on Field when components have aria-invalid', rule, {
+    valid: [],
+    invalid: [
+      {
+        code: `
             <Field>
               <Switch aria-invalid="true" />
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataInvalid' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataInvalid' }],
+        output: `
             <Field data-invalid>
               <Switch aria-invalid="true" />
             </Field>
           `,
-        },
-        // Missing data-invalid on Field with other attributes
-        {
-          code: `
+      },
+      {
+        code: `
             <Field className="field">
               <Switch aria-invalid="true" />
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataInvalid' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataInvalid' }],
+        output: `
             <Field data-invalid className="field">
               <Switch aria-invalid="true" />
             </Field>
           `,
-        },
-        // Nested Field structure
-        {
-          code: `
+      },
+      {
+        code: `
             <Field>
               <FieldLabel>Label</FieldLabel>
               <Switch aria-invalid />
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataInvalid' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataInvalid' }],
+        output: `
             <Field data-invalid>
               <FieldLabel>Label</FieldLabel>
               <Switch aria-invalid />
             </Field>
           `,
-        },
-        // SelectTrigger missing data-invalid
-        {
-          code: `
+      },
+      {
+        code: `
             <Field>
               <FieldLabel>Fruit</FieldLabel>
               <SelectTrigger aria-invalid>
@@ -164,9 +149,9 @@ describe('data-invalid-field-consistency', () => {
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataInvalid' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataInvalid' }],
+        output: `
             <Field data-invalid>
               <FieldLabel>Fruit</FieldLabel>
               <SelectTrigger aria-invalid>
@@ -174,26 +159,25 @@ describe('data-invalid-field-consistency', () => {
               </SelectTrigger>
             </Field>
           `,
-        },
-        {
-          code: `
+      },
+      {
+        code: `
             <Field className="mb-4">
               <SelectTrigger aria-invalid>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-          filename: 'test.tsx',
-          errors: [{ messageId: 'missingDataInvalid' }],
-          output: `
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataInvalid' }],
+        output: `
             <Field data-invalid className="mb-4">
               <SelectTrigger aria-invalid>
                 <SelectValue />
               </SelectTrigger>
             </Field>
           `,
-        },
-      ],
-    });
+      },
+    ],
   });
 });
