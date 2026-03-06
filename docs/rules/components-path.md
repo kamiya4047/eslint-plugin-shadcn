@@ -1,34 +1,38 @@
 # components-path
 
-🔧 This rule is automatically fixable by the `--fix` CLI option.
+💡 This rule provides editor suggestions for fixing issues.
 
-Prevents importing shadcn/ui components directly from primitive packages when they exist in your local `components/ui` folder.
+Prevents importing shadcn/ui components from primitive packages when they exist locally.
 
 ## Rule Details
 
-When using shadcn/ui, IDE auto-import often suggests importing from primitive packages (e.g., `@radix-ui/react-dialog`) instead of your customized components. This rule enforces using local component imports.
+IDEs somethimes auto-import from primitive packages (like `@radix-ui/react-dialog`) instead of your local components. This rule catches that.
 
-The rule monitors imports from:
-- `@radix-ui/*`
+Detects imports from:
+- `@radix-ui/*` - scoped packages
+- `radix-ui` - unified package
 - `@base-ui/*`
 
-When it detects an import from these packages, it checks if the component exists in your local `components/ui` directory. If found, it reports an error and suggests the correct local import path.
+When a primitive import is detected, the rule checks if that component exists in your `components/ui` directory. If it does, you get two suggestions:
+
+1. Import from your local component
+2. Use an explicit primitive import if you actually need the primitive
 
 ## Examples
 
 ### Examples of **incorrect** code:
 
 ```tsx
-// Importing directly from primitive packages
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import * as ButtonPrimitive from "@radix-ui/react-button";
-import { Select } from "@base-ui/react/select";
+// Named imports from primitive packages when local component exists
+import { Dialog } from "@radix-ui/react-dialog";
+import { Button } from "@radix-ui/react-button";
+import { Dialog, Button } from "radix-ui";
 
 function MyComponent() {
   return (
-    <DialogPrimitive.Root>
-      <DialogPrimitive.Trigger>Open</DialogPrimitive.Trigger>
-    </DialogPrimitive.Root>
+    <Dialog>
+      <Button>Open</Button>
+    </Dialog>
   );
 }
 ```
@@ -49,9 +53,16 @@ function MyComponent() {
   );
 }
 
-// Importing from primitives is OK if component doesn't exist locally
+// Namespace imports from scoped packages are OK (explicit intent)
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-// If tooltip.tsx does NOT exist in components/ui
+import * as RadixUI from "radix-ui";
+
+// Aliased imports from unified package are OK (explicit intent + tree-shaking)
+import { Dialog as DialogPrimitive } from "radix-ui";
+
+// Importing from primitives is OK if component doesn't exist locally
+import { Tooltip } from "@radix-ui/react-tooltip";
+import { Tooltip } from "radix-ui";
 
 // Other packages are not affected
 import { useState } from "react";
@@ -60,28 +71,16 @@ import { clsx } from "clsx";
 
 ## When To Use It
 
-Use this rule when:
-- You're using shadcn/ui components in your project
-- You want to ensure developers use local customized components
-- You want to prevent accidental imports via IDE auto-import
+Use this if you have shadcn/ui components and want to prevent IDE from auto-importing the wrong one.
 
 ## How It Works
 
-1. Reads `components.json` to determine your local component path (e.g., `@/components/ui`)
-2. Scans `components/ui` directory and caches available components (once per ESLint run)
-3. Detects imports from primitive packages
-4. Maps package names like `@radix-ui/react-dialog` to `dialog`
-5. Checks if the component exists locally
-6. Reports error if local component exists, suggests correct import
-7. Auto-fixes by replacing primitive import with local import
-
-### Performance
-
-The rule uses intelligent caching:
-- Reads `components.json` once per project
-- Scans `components/ui` directory once per ESLint run
-- Reuses cached data for all files
-- No performance impact even with hundreds of files
+1. Reads `components.json` for your component path
+2. Scans and caches available components once per run
+3. Detects named imports from primitive packages
+4. Maps package names to component names (PascalCase → kebab-case)
+5. Reports an error if the component exists locally
+6. Suggests local import or explicit primitive import
 
 ## components.json Configuration
 
@@ -114,9 +113,32 @@ The rule will suggest:
 import { Button } from "@/app/ui/button";
 ```
 
-## Auto-fix
+## Editor Suggestions
 
-This rule provides automatic fixes. Running `eslint --fix` will replace primitive imports with local component imports.
+When an issue is detected, you get two suggestions:
+
+1. **Use local component**
+   ```tsx
+   // Before
+   import { Button } from "@radix-ui/react-button";
+
+   // After
+   import { Button } from "@/components/ui/button";
+   ```
+
+2. **Use explicit primitive import**
+
+   Scoped packages (`@radix-ui/*`):
+   ```tsx
+   import * as ButtonPrimitive from "@radix-ui/react-button";
+   ```
+
+   Unified package (`radix-ui`):
+   ```tsx
+   import { Button as ButtonPrimitive } from "radix-ui";
+   ```
+
+The rule doesn't flag namespace or aliased imports since those show you intentionally want the primitive.
 
 ## Options
 
@@ -124,18 +146,16 @@ This rule has no configuration options.
 
 ## Implementation Details
 
-- ✅ Only reports errors when the component exists locally
-- ✅ Silently skips if `components.json` is not found
-- ✅ Supports all major UI primitive libraries
-- ✅ Works with custom component paths
-- ✅ Preserves other imports (React, utilities, etc.)
+- Only reports non-aliased named imports
+- Skips namespace and aliased imports
+- Only reports when the component exists locally
+- Does nothing if `components.json` is missing
+- Works with custom component paths
+- Preserves quote style in fixes
 
 ## When Not To Use It
 
-You can disable this rule if:
-- You're not using shadcn/ui components
-- You prefer to import directly from UI primitive packages
-- You're intentionally using both local and primitive imports for different purposes
+Disable this if you are intentionally importing directly from primitive packages but still got flagged.
 
 ## Related Rules
 

@@ -1,4 +1,4 @@
-import { describe, test } from 'bun:test';
+import { describe, it } from 'bun:test';
 
 import { RuleTester } from 'eslint';
 
@@ -17,7 +17,7 @@ const ruleTester = new RuleTester({
 });
 
 describe('switch-requires-label', () => {
-  test('should enforce accessible labels on Switch components', () => {
+  it('should allow Switch with proper labels', () => {
     ruleTester.run('switch-requires-label', rule, {
       valid: [
         // Correct - Field with FieldLabel sibling
@@ -60,6 +60,13 @@ describe('switch-requires-label', () => {
           filename: 'test.tsx',
         },
       ],
+      invalid: [],
+    });
+  });
+
+  it('should enforce accessible labels on Switch components', () => {
+    ruleTester.run('switch-requires-label', rule, {
+      valid: [],
       invalid: [
         // Missing label - Switch without any label
         {

@@ -1,6 +1,8 @@
 import { dirname, join, resolve } from 'node:path';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 
+import { AST_NODE_TYPES } from '@typescript-eslint/types';
+
 import type { Rule } from 'eslint';
 import type { TSESTree } from '@typescript-eslint/types';
 
@@ -32,31 +34,15 @@ interface CachedProjectConfig {
   availableComponents: Set<string>;
 }
 
-/**
- * Cache for project configurations
- * Key: project root path
- * Value: cached config data
- *
- * This cache persists across multiple file lints within the same ESLint run,
- * preventing us from reading components.json and scanning the components/ui
- * directory multiple times unnecessarily.
- */
 const projectConfigCache = new Map<string, CachedProjectConfig>();
 
-/**
- * Clears the project configuration cache
- * Useful for testing or when components.json changes
- */
 export function clearProjectConfigCache(): void {
   projectConfigCache.clear();
 }
 
-/**
- * Finds components.json in the project root by walking up from the current file
- */
 function findComponentsJson(startPath: string): string | null {
   let currentDir: string = dirname(startPath);
-  const maxDepth = 10; // Prevent infinite loops
+  const maxDepth = 10;
 
   for (let i = 0; i < maxDepth; i++) {
     const componentsJsonPath: string = join(currentDir, 'components.json');
@@ -67,7 +53,7 @@ function findComponentsJson(startPath: string): string | null {
 
     const parentDir: string = dirname(currentDir);
     if (parentDir === currentDir) {
-      break; // Reached root
+      break;
     }
     currentDir = parentDir;
   }
@@ -75,9 +61,6 @@ function findComponentsJson(startPath: string): string | null {
   return null;
 }
 
-/**
- * Finds the project root (directory containing components.json)
- */
 function findProjectRoot(startPath: string): string | null {
   const componentsJsonPath: string | null = findComponentsJson(startPath);
   if (!componentsJsonPath) {
@@ -87,9 +70,6 @@ function findProjectRoot(startPath: string): string | null {
   return dirname(componentsJsonPath);
 }
 
-/**
- * Reads and parses components.json
- */
 function loadComponentsConfig(
   componentsJsonPath: string,
 ): ComponentsConfig | null {
@@ -102,9 +82,6 @@ function loadComponentsConfig(
   }
 }
 
-/**
- * Gets list of available components in the components/ui directory
- */
 function getAvailableComponents(
   projectRoot: string,
   uiAlias: string,
@@ -112,10 +89,7 @@ function getAvailableComponents(
   const components = new Set<string>();
 
   try {
-    // Convert alias to actual path (e.g., @/components/ui -> src/components/ui)
-    // Common patterns: @/ -> src/, ~/ -> ./
     const uiPath: string = uiAlias.replace(/^@\//, 'src/').replace(/^~\//, './');
-
     const fullPath: string = resolve(projectRoot, uiPath);
 
     if (!existsSync(fullPath)) {
@@ -132,28 +106,21 @@ function getAvailableComponents(
     }
   }
   catch {
-    // Ignore errors
   }
 
   return components;
 }
 
-/**
- * Gets or creates cached project configuration
- */
 function getProjectConfig(filePath: string): CachedProjectConfig | null {
   const projectRoot: string | null = findProjectRoot(filePath);
   if (!projectRoot) {
     return null;
   }
 
-  // Check if we already have this project cached
   const cached: CachedProjectConfig | undefined = projectConfigCache.get(projectRoot);
   if (cached) {
     return cached;
   }
-
-  // Load and cache the configuration
 
   const componentsJsonPath: string = join(projectRoot, 'components.json');
   const config: ComponentsConfig | null = loadComponentsConfig(componentsJsonPath);
@@ -171,25 +138,17 @@ function getProjectConfig(filePath: string): CachedProjectConfig | null {
   return cachedConfig;
 }
 
-/**
- * Packages that contain UI primitives that shadcn/ui wraps
- */
 const UI_PRIMITIVE_PACKAGES = [
   '@radix-ui/',
   '@base-ui/',
+  'radix-ui',
 ] as const;
 
-/**
- * Map Radix UI package names to shadcn component names
- * e.g., @radix-ui/react-dialog -> dialog
- */
 function mapPackageToComponent(packageName: string): string | null {
-  // Handle @radix-ui/react-* pattern
   if (packageName.startsWith('@radix-ui/react-')) {
     return packageName.replace('@radix-ui/react-', '');
   }
 
-  // Handle @base-ui/react-* pattern
   if (packageName.startsWith('@base-ui/react-')) {
     return packageName.replace('@base-ui/react-', '');
   }
@@ -207,25 +166,27 @@ const rule: Rule.RuleModule = {
     },
     messages: {
       useLocalComponent:
-        'Import "{{ componentName }}" from local components folder "{{ expectedPath }}" instead of directly from "{{ packageName }}"',
+        '"{{ componentName }}" should be imported from local components folder "{{ expectedPath }}". If you need to use the primitives directly, use a namespace import or an aliased import.',
+      suggestLocalImport:
+        'Change to local component import from "{{ expectedPath }}"',
+      suggestNamespaceImport:
+        'Change to namespace import (import * as {{ namespaceName }} from "{{ packageName }}")',
+      suggestAliasedImport:
+        'Change to aliased import (import { {{ importedName }} as {{ aliasedName }} } from "{{ packageName }}")',
     },
     schema: [],
-    fixable: 'code',
+    hasSuggestions: true,
   },
   create(context) {
     const filename = context.filename;
 
     const projectConfig = getProjectConfig(filename);
     if (!projectConfig) {
-      // No components.json found, skip this file
       return {};
     }
 
     const { uiPath, availableComponents } = projectConfig;
 
-    /**
-     * Check if importing from a UI primitive package
-     */
     function isUIPrimitiveImport(importPath: string): boolean {
       return UI_PRIMITIVE_PACKAGES.some((pkg) => importPath.startsWith(pkg));
     }
@@ -238,8 +199,79 @@ const rule: Rule.RuleModule = {
         }
 
         const importPath = importDecl.source.value;
+        const sourceCode = context.sourceCode?.getText(importDecl.source as unknown as Rule.Node) || '';
+        const quote = sourceCode.startsWith('\'') ? '\'' : '"';
 
         if (!isUIPrimitiveImport(importPath)) {
+          return;
+        }
+
+        if (importPath === 'radix-ui') {
+          for (const specifier of importDecl.specifiers) {
+            if (specifier.type !== AST_NODE_TYPES.ImportSpecifier) {
+              continue;
+            }
+
+            const importSpecifier = specifier;
+
+            if (importSpecifier.imported.type !== AST_NODE_TYPES.Identifier) {
+              continue;
+            }
+
+            const importedName = importSpecifier.imported.name;
+            const localName = importSpecifier.local.name;
+
+            if (importedName !== localName) {
+              continue;
+            }
+
+            const componentName = importedName
+              .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+              .toLowerCase();
+
+            if (availableComponents.has(componentName)) {
+              const expectedPath = `${uiPath}/${componentName}`;
+              const aliasedName = `${importedName}Primitive`;
+
+              context.report({
+                node: importSpecifier as unknown as Rule.Node,
+                messageId: 'useLocalComponent',
+                data: {
+                  componentName: importedName,
+                  expectedPath,
+                  packageName: importPath,
+                },
+                suggest: [
+                  {
+                    messageId: 'suggestLocalImport',
+                    data: {
+                      expectedPath,
+                    },
+                    fix(fixer) {
+                      return fixer.replaceText(
+                        node,
+                        `import { ${importedName} } from ${quote}${expectedPath}${quote};`,
+                      );
+                    },
+                  },
+                  {
+                    messageId: 'suggestAliasedImport',
+                    data: {
+                      importedName,
+                      aliasedName,
+                      packageName: importPath,
+                    },
+                    fix(fixer) {
+                      return fixer.replaceText(
+                        node,
+                        `import { ${importedName} as ${aliasedName} } from ${quote}${importPath}${quote};`,
+                      );
+                    },
+                  },
+                ],
+              });
+            }
+          }
           return;
         }
 
@@ -247,18 +279,44 @@ const rule: Rule.RuleModule = {
 
         if (componentName && availableComponents.has(componentName)) {
           const expectedPath = `${uiPath}/${componentName}`;
+          const pascalCaseName = componentName
+            .split('-')
+            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+            .join('');
+          const namespaceName = `${pascalCaseName}Primitive`;
 
           context.report({
             node: importDecl.source as unknown as Rule.Node,
             messageId: 'useLocalComponent',
             data: {
-              componentName,
+              componentName: pascalCaseName,
               expectedPath,
               packageName: importPath,
             },
-            fix(fixer) {
-              return fixer.replaceText(importDecl.source as unknown as Rule.Node, `"${expectedPath}"`);
-            },
+            suggest: [
+              {
+                messageId: 'suggestLocalImport',
+                data: {
+                  expectedPath,
+                },
+                fix(fixer) {
+                  return fixer.replaceText(importDecl.source as unknown as Rule.Node, `${quote}${expectedPath}${quote}`);
+                },
+              },
+              {
+                messageId: 'suggestNamespaceImport',
+                data: {
+                  namespaceName,
+                  packageName: importPath,
+                },
+                fix(fixer) {
+                  return fixer.replaceText(
+                    node,
+                    `import * as ${namespaceName} from ${quote}${importPath}${quote};`,
+                  );
+                },
+              },
+            ],
           });
         }
       },

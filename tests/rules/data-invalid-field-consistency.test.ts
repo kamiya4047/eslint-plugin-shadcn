@@ -1,4 +1,4 @@
-import { describe, test } from 'bun:test';
+import { describe, it } from 'bun:test';
 
 import { RuleTester } from 'eslint';
 
@@ -17,7 +17,7 @@ const ruleTester = new RuleTester({
 });
 
 describe('data-invalid-field-consistency', () => {
-  test('should enforce data-invalid on Field when components have aria-invalid', () => {
+  it('should allow correct data-invalid usage', () => {
     ruleTester.run('data-invalid-field-consistency', rule, {
       valid: [
         // Correct - Field has data-invalid when Switch has aria-invalid
@@ -99,6 +99,13 @@ describe('data-invalid-field-consistency', () => {
           options: [{ ignore: ['SelectTrigger'] }],
         },
       ],
+      invalid: [],
+    });
+  });
+
+  it('should enforce data-invalid on Field when components have aria-invalid', () => {
+    ruleTester.run('data-invalid-field-consistency', rule, {
+      valid: [],
       invalid: [
         // Missing data-invalid on Field
         {

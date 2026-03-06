@@ -1,4 +1,4 @@
-import { test } from 'bun:test';
+import { describe, it } from 'bun:test';
 
 import { RuleTester } from 'eslint';
 
@@ -16,108 +16,125 @@ const ruleTester = new RuleTester({
   },
 });
 
-test('button-no-link-render', () => {
-  ruleTester.run('button-no-link-render', rule, {
-    valid: [
-      {
-        code: `
+describe('button-no-link-render', () => {
+  it('should allow valid Button usage', () => {
+    ruleTester.run('button-no-link-render', rule, {
+      valid: [
+        {
+          code: `
           import { buttonVariants } from "@/components/ui/button";
           <a href="#" className={buttonVariants({ variant: "secondary", size: "sm" })}>
             Login
           </a>
         `,
-      },
-      {
-        code: `
+        },
+        {
+          code: `
           import { buttonVariants } from "@/components/ui/button";
           import Link from "next/link";
           <Link href="/login" className={buttonVariants({ variant: "secondary" })}>
             Login
           </Link>
         `,
-      },
-      {
-        code: `
+        },
+        {
+          code: `
           import { Button } from "@/components/ui/button";
           <Button onClick={handleClick}>
             Click me
           </Button>
         `,
-      },
-      {
-        code: `
+        },
+        {
+          code: `
           import { Button } from "@/components/ui/button";
           <Button type="submit">
             Submit
           </Button>
         `,
-      },
-      {
-        code: `
+        },
+        {
+          code: `
           import { Button } from "@/components/ui/button";
           <Button nativeButton={true}>
             Click me
           </Button>
         `,
-      },
-      {
-        code: `
+        },
+        {
+          code: `
           import { Button } from "@/components/ui/button";
           <Button nativeButton={false} render={<div />}>
             Complex children
           </Button>
         `,
-      },
-      {
-        code: `
+        },
+        {
+          code: `
           import { Button } from "@/components/ui/button";
           <Button nativeButton={false}>
             Click me
           </Button>
         `,
-      },
-    ],
-    invalid: [
-      {
-        code: `
+        },
+      ],
+      invalid: [],
+    });
+  });
+
+  it('should prevent Button from rendering as an <a> tag', () => {
+    ruleTester.run('button-no-link-render', rule, {
+      valid: [],
+      invalid: [
+        {
+          code: `
           import { Button } from "@/components/ui/button";
           <Button render={<a href="/login" />}>
             Login
           </Button>
         `,
-        errors: [
-          {
-            messageId: 'noLinkRender',
-          },
-        ],
-      },
-      {
-        code: `
+          errors: [
+            {
+              messageId: 'noLinkRender',
+            },
+          ],
+        },
+        {
+          code: `
           import { Button } from "@/components/ui/button";
           <Button render={<a href="#" />}>
             Login
           </Button>
         `,
-        errors: [
-          {
-            messageId: 'noLinkRender',
-          },
-        ],
-      },
-      {
-        code: `
+          errors: [
+            {
+              messageId: 'noLinkRender',
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('should prevent Button from rendering as a Link component', () => {
+    ruleTester.run('button-no-link-render', rule, {
+      valid: [],
+      invalid: [
+        {
+          code: `
           import { Button } from "@/components/ui/button";
           import Link from "next/link";
           <Button render={<Link href="/login" />}>
             Login
           </Button>
         `,
-        errors: [
-          {
-            messageId: 'noLinkRender',
-          },
-        ],
-      },
-    ],
+          errors: [
+            {
+              messageId: 'noLinkRender',
+            },
+          ],
+        },
+      ],
+    });
   });
 });

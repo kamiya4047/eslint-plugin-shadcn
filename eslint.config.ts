@@ -8,8 +8,8 @@ export default defineConfig(
   globalIgnores([
     'dist',
     'node_modules',
-  ],
-  ),
+    'tests/fixtures',
+  ]),
   {
     name: 'files',
     files: [
