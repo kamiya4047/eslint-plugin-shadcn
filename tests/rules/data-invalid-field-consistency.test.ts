@@ -178,6 +178,34 @@ describe('data-invalid-field-consistency', () => {
             </Field>
           `,
       },
+      {
+        code: `
+            <Field>
+              <Switch aria-invalid={isInvalid} />
+            </Field>
+          `,
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataInvalid' }],
+        output: `
+            <Field data-invalid={isInvalid}>
+              <Switch aria-invalid={isInvalid} />
+            </Field>
+          `,
+      },
+      {
+        code: `
+            <Field>
+              <Input aria-invalid={fieldState.invalid} />
+            </Field>
+          `,
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataInvalid' }],
+        output: `
+            <Field data-invalid={fieldState.invalid}>
+              <Input aria-invalid={fieldState.invalid} />
+            </Field>
+          `,
+      },
     ],
   });
 });

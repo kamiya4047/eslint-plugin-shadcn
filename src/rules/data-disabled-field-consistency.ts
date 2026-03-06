@@ -1,5 +1,7 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
+import { getAttributeValue } from '../utils/jsx-attributes';
+
 import type { Rule } from 'eslint';
 import type { TSESTree } from '@typescript-eslint/types';
 
@@ -47,13 +49,8 @@ const rule: Rule.RuleModule = {
       return null;
     }
 
-    function hasDisabledProp(node: TSESTree.JSXOpeningElement): boolean {
-      return node.attributes.some(
-        (attr) =>
-          attr.type === AST_NODE_TYPES.JSXAttribute
-          && attr.name.type === AST_NODE_TYPES.JSXIdentifier
-          && attr.name.name === 'disabled',
-      );
+    function getDisabledPropValue(node: TSESTree.JSXOpeningElement): string | null {
+      return getAttributeValue(node, 'disabled', context);
     }
 
     function isFieldComponent(node: TSESTree.JSXOpeningElement): boolean {
@@ -96,7 +93,8 @@ const rule: Rule.RuleModule = {
           return;
         }
 
-        if (!hasDisabledProp(jsxElement.openingElement)) {
+        const disabledValue = getDisabledPropValue(jsxElement.openingElement);
+        if (disabledValue === null) {
           return;
         }
 
@@ -115,14 +113,15 @@ const rule: Rule.RuleModule = {
             fix(fixer) {
               const openingElement = parentField.openingElement;
               const name = openingElement.name;
+              const attributeText = disabledValue === '' ? 'data-disabled' : `data-disabled=${disabledValue}`;
 
               if (openingElement.attributes.length === 0) {
-                return fixer.insertTextAfter(name as unknown as Rule.Node, ' data-disabled');
+                return fixer.insertTextAfter(name as unknown as Rule.Node, ` ${attributeText}`);
               }
               else {
                 return fixer.insertTextBefore(
                   openingElement.attributes[0] as unknown as Rule.Node,
-                  'data-disabled ',
+                  `${attributeText} `,
                 );
               }
             },

@@ -31,6 +31,15 @@ This rule ensures consistent styling between component disabled states and their
     <SelectValue />
   </SelectTrigger>
 </Field>
+
+// ❌ Variable/expression: Field missing data-disabled with same expression
+<Field>
+  <Switch disabled={isDisabled} />
+</Field>
+
+<Field>
+  <Input disabled={fieldState.disabled} />
+</Field>
 ```
 
 ### Examples of **correct** code:
@@ -70,11 +79,21 @@ This rule ensures consistent styling between component disabled states and their
 <div>
   <Switch disabled />
 </div>
+
+// ✅ Variable/expression values are properly synced
+<Field data-disabled={isDisabled}>
+  <Switch disabled={isDisabled} />
+</Field>
+
+<Field data-disabled={fieldState.disabled}>
+  <Input disabled={fieldState.disabled} />
+</Field>
 ```
 
 ## When To Use It
 
 Use this rule when:
+
 - You're using shadcn/ui components with Radix or Base UI
 - You want to ensure consistent disabled state styling
 - You follow shadcn/ui documentation patterns

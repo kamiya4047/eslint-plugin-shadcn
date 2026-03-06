@@ -32,6 +32,15 @@ This rule ensures consistent styling between component invalid states and their 
     <SelectValue />
   </SelectTrigger>
 </Field>
+
+// ❌ Variable/expression: Field missing data-invalid with same expression
+<Field>
+  <Switch aria-invalid={isInvalid} />
+</Field>
+
+<Field>
+  <Input aria-invalid={fieldState.invalid} />
+</Field>
 ```
 
 ### Examples of **correct** code:
@@ -77,11 +86,21 @@ This rule ensures consistent styling between component invalid states and their 
 <Field data-invalid>
   <Switch aria-invalid />
 </Field>
+
+// ✅ Variable/expression values are properly synced
+<Field data-invalid={isInvalid}>
+  <Switch aria-invalid={isInvalid} />
+</Field>
+
+<Field data-invalid={fieldState.invalid}>
+  <Input aria-invalid={fieldState.invalid} />
+</Field>
 ```
 
 ## When To Use It
 
 Use this rule when:
+
 - You're using shadcn/ui components with Radix or Base UI
 - You want to ensure consistent invalid state styling
 - You're implementing form validation

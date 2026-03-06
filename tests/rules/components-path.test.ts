@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { beforeEach, describe } from 'mocha';
 import { RuleTester } from 'eslint';
 
-import rule, { clearProjectConfigCache } from '../../src/rules/components-path';
+import { clearProjectConfigCache, default as rule } from '../../src/rules/components-path';
 
 const ruleTester = new RuleTester({
   languageOptions: {

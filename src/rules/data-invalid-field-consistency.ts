@@ -1,5 +1,7 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
+import { getAttributeValue } from '../utils/jsx-attributes';
+
 import type { Rule } from 'eslint';
 import type { TSESTree } from '@typescript-eslint/types';
 
@@ -47,13 +49,8 @@ const rule: Rule.RuleModule = {
       return null;
     }
 
-    function hasAriaInvalidProp(node: TSESTree.JSXOpeningElement): boolean {
-      return node.attributes.some(
-        (attr) =>
-          attr.type === AST_NODE_TYPES.JSXAttribute
-          && attr.name.type === AST_NODE_TYPES.JSXIdentifier
-          && attr.name.name === 'aria-invalid',
-      );
+    function getAriaInvalidPropValue(node: TSESTree.JSXOpeningElement): string | null {
+      return getAttributeValue(node, 'aria-invalid', context);
     }
 
     function isFieldComponent(node: TSESTree.JSXOpeningElement): boolean {
@@ -96,7 +93,8 @@ const rule: Rule.RuleModule = {
           return;
         }
 
-        if (!hasAriaInvalidProp(jsxElement.openingElement)) {
+        const ariaInvalidValue = getAriaInvalidPropValue(jsxElement.openingElement);
+        if (ariaInvalidValue === null) {
           return;
         }
 
@@ -115,14 +113,15 @@ const rule: Rule.RuleModule = {
             fix(fixer) {
               const openingElement = parentField.openingElement;
               const name = openingElement.name;
+              const attributeText = ariaInvalidValue === '' ? 'data-invalid' : `data-invalid=${ariaInvalidValue}`;
 
               if (openingElement.attributes.length === 0) {
-                return fixer.insertTextAfter(name as unknown as Rule.Node, ' data-invalid');
+                return fixer.insertTextAfter(name as unknown as Rule.Node, ` ${attributeText}`);
               }
               else {
                 return fixer.insertTextBefore(
                   openingElement.attributes[0] as unknown as Rule.Node,
-                  'data-invalid ',
+                  `${attributeText} `,
                 );
               }
             },

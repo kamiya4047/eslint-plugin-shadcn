@@ -170,6 +170,34 @@ describe('data-disabled-field-consistency', () => {
             </Field>
           `,
       },
+      {
+        code: `
+            <Field>
+              <Switch disabled={isDisabled} />
+            </Field>
+          `,
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataDisabled' }],
+        output: `
+            <Field data-disabled={isDisabled}>
+              <Switch disabled={isDisabled} />
+            </Field>
+          `,
+      },
+      {
+        code: `
+            <Field>
+              <Input disabled={fieldState.disabled} />
+            </Field>
+          `,
+        filename: 'test.tsx',
+        errors: [{ messageId: 'missingDataDisabled' }],
+        output: `
+            <Field data-disabled={fieldState.disabled}>
+              <Input disabled={fieldState.disabled} />
+            </Field>
+          `,
+      },
     ],
   });
 });

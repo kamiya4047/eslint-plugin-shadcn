@@ -65,7 +65,7 @@ export default [
 | [data-icon-attribute](./docs/rules/data-icon-attribute.md) | Enforce `data-icon` attribute on icons/spinners/kbd in Button/Badge | 🔧 |
 | [data-invalid-field-consistency](./docs/rules/data-invalid-field-consistency.md) | Enforce `data-invalid` on Field when components have `aria-invalid` (Switch, SelectTrigger, Input, Textarea, Checkbox, RadioGroup) | 🔧 |
 | [data-disabled-field-consistency](./docs/rules/data-disabled-field-consistency.md) | Enforce `data-disabled` on Field when components are disabled (Switch, SelectTrigger, Input, Textarea, Checkbox, RadioGroup) | 🔧 |
-| [components-path](./docs/rules/components-path.md) | Enforce consistent component import paths from @/components/ui | 🔧 |
+| [components-path](./docs/rules/components-path.md) | Enforce consistent component import paths from @/components/ui | 💡 |
 
 ### Base UI Specific
 
