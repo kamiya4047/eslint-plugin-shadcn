@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "type": "module",
   "files": [
-    "dist/",
+    "dist/index.js",
+    "dist/index.d.ts",
     "docs/",
     "README.md"
   ],
@@ -34,7 +35,7 @@
     "a11y"
   ],
   "scripts": {
-    "build": "rollup -c rollup.config.js",
+    "build": "rm -rf dist && rollup -c rollup.config.js && rm -rf dist/temp",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "dev": "bun --watch src/index.ts",
