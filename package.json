@@ -40,7 +40,7 @@
     "dev": "bun --watch src/index.ts",
     "docs": "echo 'Documentation available in docs/ folder'",
     "test": "mocha tests/rules/*",
-    "prepublishOnly": "bun run build && bun test",
+    "prepublishOnly": "bun run build && bun run test",
     "publish:npm": "npm publish --registry https://registry.npmjs.org",
     "publish:github": "npm publish --registry https://npm.pkg.github.com",
     "publish:all": "npm run publish:npm && npm run publish:github",
